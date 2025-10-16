@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKYW LS专项基金投资回报测算系统</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .input-suffix {
+            position: relative;
+        }
+        
+        .input-suffix input {
+            padding-right: 70px;
+        }
+        
+        .input-suffix::after {
+            content: attr(data-suffix);
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .result-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .discount-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .result-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .result-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .result-value.highlight {
+            color: #667eea;
+            font-size: 22px;
+        }
+        
+        .result-value.positive {
+            color: #10b981;
+        }
+        
+        .result-value.negative {
+            color: #ef4444;
+        }
+        
+        .breakdown-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        
+        .breakdown-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .breakdown-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .breakdown-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .breakdown-item-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .info-box {
+            background: #e0e7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4338ca;
+            margin-bottom: 8px;
+        }
+        
+        .info-box-content {
+            font-size: 13px;
+            color: #4338ca;
+            line-height: 1.6;
+        }
+        
+        .comparison-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function FundCalculator() {
+            const [inputs, setInputs] = useState({
+                investment: 1000000, // 投资人投入（港元）
+                investmentYears: 2, // 投资期限（年）
+                fundSize: 60000000, // 基金总规模（港元）
+                initialMarketCap: 200000000, // 初始股票市值（港元）
+                finalMarketCap: 5000000000, // 退出时股票市值（港元）
+                discount: 10, // 大宗转让折让（%）
+                investorType: 'individual' // 投资者类型
+            });
+
+            const [results, setResults] = useState(null);
+
+            const handleInputChange = (field, value) => {
+                setInputs(prev => ({
+                    ...prev,
+                    [field]: field === 'investorType' ? value : (parseFloat(value) || 0)
+                }));
+            };
+
+            const calculate = () => {
+                const { investment, investmentYears, fundSize, initialMarketCap, finalMarketCap, discount, investorType } = inputs;
+                
+                // 1. 扣除管理费（每年2%，投资时预扣）
+                const annualManagementFee = 0.02;
+                const totalManagementFeeRate = annualManagementFee * investmentYears;
+                const managementFee = investment * totalManagementFeeRate;
+                const netInvestment = investment - managementFee;
+                
+                // 2. 认购基金份额（初始净值=1）
+                const initialNav = 1;
+                const shares = netInvestment / initialNav;
+                
+                // 3. 计算股票增值倍数
+                const stockMultiple = finalMarketCap / initialMarketCap;
+                
+                // 4. 计算新的基金净资产
+                const newFundAssets = fundSize * stockMultiple;
+                
+                // 5. 计算新的基金净值（假设总份额不变）
+                const totalShares = fundSize / initialNav;
+                const newNav = newFundAssets / totalShares;
+                
+                // 6. 计算投资者账户价值
+                const accountValue = shares * newNav;
+                
+                // 计算无折让和有折让两种情况
+                const noDiscountResult = calculateWithDiscount(investment, accountValue, 0, investorType, investmentYears);
+                const withDiscountResult = calculateWithDiscount(investment, accountValue, discount, investorType, investmentYears);
+                
+                setResults({
+                    managementFee,
+                    netInvestment,
+                    shares,
+                    initialNav,
+                    stockMultiple,
+                    newNav,
+                    accountValue,
+                    noDiscount: noDiscountResult,
+                    withDiscount: withDiscountResult
+                });
+            };
+
+            const calculateWithDiscount = (principal, accountValue, discountRate, investorType, years) => {
+                // 1. 应用大宗转让折让
+                const discountAmount = accountValue * (discountRate / 100);
+                const afterDiscountValue = accountValue - discountAmount;
+                
+                // 2. 计算总收益
+                const grossProfit = afterDiscountValue - principal;
+                
+                // 3. 累计回报率
+                const cumulativeReturn = (grossProfit / principal) * 100;
+                
+                // 4. 计算业绩报酬（累进分段）
+                const performanceFee = calculatePerformanceFee(principal, grossProfit, years);
+                
+                // 5. 扣除业绩报酬后的净收益
+                const netProfitAfterPerformance = grossProfit - performanceFee.total;
+                
+                // 6. 计算投资者层面税收
+                const investorTax = calculateInvestorTax(netProfitAfterPerformance, investorType);
+                
+                // 7. 最终到手金额
+                const finalAmount = principal + netProfitAfterPerformance - investorTax.totalTax;
+                const finalProfit = finalAmount - principal;
+                
+                // 8. 实际年化回报率
+                const actualAnnualReturn = years > 0 ? (Math.pow(finalAmount / principal, 1 / years) - 1) * 100 : 0;
+                
+                return {
+                    discountAmount,
+                    afterDiscountValue,
+                    grossProfit,
+                    cumulativeReturn,
+                    performanceFee,
+                    netProfitAfterPerformance,
+                    investorTax,
+                    finalAmount,
+                    finalProfit,
+                    actualAnnualReturn
+                };
+            };
+
+            const calculatePerformanceFee = (principal, totalProfit, years) => {
+                const breakdown = [];
+                let remainingProfit = totalProfit;
+                let totalFee = 0;
+                
+                if (totalProfit <= 0) {
+                    return { total: 0, breakdown: [] };
+                }
+                
+                // 第一档：0 → 年化8%门槛（投资者100%）
+                const threshold8Percent = principal * (Math.pow(1.08, years) - 1);
+                if (remainingProfit > 0 && threshold8Percent > 0) {
+                    const tier1Profit = Math.min(remainingProfit, threshold8Percent);
+                    breakdown.push({
+                        tier: "第一档",
+                        description: "0 → 年化8%",
+                        profit: tier1Profit,
+                        managerShare: 0,
+                        managerAmount: 0
+                    });
+                    remainingProfit -= tier1Profit;
+                }
+                
+                // 第二档：年化8% → 累计回报100%（管理人20%）
+                const threshold100Percent = principal * 1; // 累计回报100%
+                const tier2Upper = Math.max(0, threshold100Percent - threshold8Percent);
+                if (remainingProfit > 0 && tier2Upper > 0) {
+                    const tier2Profit = Math.min(remainingProfit, tier2Upper);
+                    const managerAmount = tier2Profit * 0.20;
+                    breakdown.push({
+                        tier: "第二档",
+                        description: "年化8% → 回报100%",
+                        profit: tier2Profit,
+                        managerShare: 20,
+                        managerAmount: managerAmount
+                    });
+                    remainingProfit -= tier2Profit;
+                    totalFee += managerAmount;
+                }
+                
+                // 第三档：累计回报100% → 400%（管理人40%）
+                const threshold400Percent = principal * 4;
+                const tier3Upper = Math.max(0, threshold400Percent - threshold100Percent);
+                if (remainingProfit > 0 && tier3Upper > 0) {
+                    const tier3Profit = Math.min(remainingProfit, tier3Upper);
+                    const managerAmount = tier3Profit * 0.40;
+                    breakdown.push({
+                        tier: "第三档",
+                        description: "回报100% → 400%",
+                        profit: tier3Profit,
+                        managerShare: 40,
+                        managerAmount: managerAmount
+                    });
+                    remainingProfit -= tier3Profit;
+                    totalFee += managerAmount;
+                }
+                
+                // 第四档：累计回报>400%（管理人50%）
+                if (remainingProfit > 0) {
+                    const managerAmount = remainingProfit * 0.50;
+                    breakdown.push({
+                        tier: "第四档",
+                        description: "回报 > 400%",
+                        profit: remainingProfit,
+                        managerShare: 50,
+                        managerAmount: managerAmount
+                    });
+                    totalFee += managerAmount;
+                }
+                
+                return {
+                    total: totalFee,
+                    breakdown: breakdown
+                };
+            };
+
+            const calculateInvestorTax = (profit, investorType) => {
+                if (profit <= 0) {
+                    return { totalTax: 0, breakdown: [] };
+                }
+                
+                const breakdown = [];
+                let totalTax = 0;
+                
+                if (investorType === 'individual') {
+                    // 个人投资者：对全部收益征收16.5%利得税
+                    const tax = profit * 0.165;
+                    breakdown.push({
+                        type: '个人利得税',
+                        rate: 16.5,
+                        taxableAmount: profit,
+                        tax: tax,
+                        note: '香港个人投资者收益需缴纳16.5%利得税'
+                    });
+                    totalTax = tax;
+                } else {
+                    // 公司投资者：两级制利得税
+                    // 首200万利润：8.25%
+                    // 超过200万部分：16.5%
+                    const tier1Limit = 2000000;
+                    
+                    if (profit <= tier1Limit) {
+                        const tax = profit * 0.0825;
+                        breakdown.push({
+                            type: '企业利得税（首200万）',
+                            rate: 8.25,
+                            taxableAmount: profit,
+                            tax: tax
+                        });
+                        totalTax = tax;
+                    } else {
+                        const tier1Tax = tier1Limit * 0.0825;
+                        const tier2Amount = profit - tier1Limit;
+                        const tier2Tax = tier2Amount * 0.165;
+                        
+                        breakdown.push({
+                            type: '企业利得税（首200万）',
+                            rate: 8.25,
+                            taxableAmount: tier1Limit,
+                            tax: tier1Tax
+                        });
+                        breakdown.push({
+                            type: '企业利得税（超200万部分）',
+                            rate: 16.5,
+                            taxableAmount: tier2Amount,
+                            tax: tier2Tax
+                        });
+                        totalTax = tier1Tax + tier2Tax;
+                    }
+                }
+                
+                return {
+                    totalTax,
+                    breakdown
+                };
+            };
+
+            const formatCurrency = (value) => {
+                if (value >= 100000000) {
+                    return (value / 100000000).toFixed(2) + ' 亿';
+                } else if (value >= 10000) {
+                    return (value / 10000).toFixed(2) + ' 万';
+                }
+                return new Intl.NumberFormat('zh-HK', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(value);
+            };
+
+            const renderResult = (result, title, badge) => {
+                return (
+                    <div className="result-card">
+                        <div className="result-card-title">
+                            {title} {badge && <span className="discount-badge">{badge}</span>}
+                        </div>
+                        
+                        <div className="result-row">
+                            <span className="result-label">退出时账户价值</span>
+                            <span className="result-value positive">{formatCurrency(result.afterDiscountValue + result.discountAmount)} 港元</span>
+                        </div>
+                        {result.discountAmount > 0 && (
+                            <div className="result-row">
+                                <span className="result-label">大宗转让折让</span>
+                                <span className="result-value negative">-{formatCurrency(result.discountAmount)} 港元</span>
+                            </div>
+                        )}
+                        <div className="result-row">
+                            <span className="result-label">扣折让后价值</span>
+                            <span className="result-value">{formatCurrency(result.afterDiscountValue)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">总收益</span>
+                            <span className="result-value positive">{formatCurrency(result.grossProfit)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">累计回报率</span>
+                            <span className="result-value positive">{result.cumulativeReturn.toFixed(2)}%</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">业绩报酬（管理人）</span>
+                            <span className="result-value negative">-{formatCurrency(result.performanceFee.total)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">投资者利得税</span>
+                            <span className="result-value negative">-{formatCurrency(result.investorTax.totalTax)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">💰 最终到手金额</span>
+                            <span className="result-value highlight">{formatCurrency(result.finalAmount)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">✨ 净收益</span>
+                            <span className="result-value highlight">{formatCurrency(result.finalProfit)} 港元</span>
+                        </div>
+                        <div className="result-row">
+                            <span className="result-label">实际年化回报</span>
+                            <span className="result-value positive">{result.actualAnnualReturn.toFixed(2)}%</span>
+                        </div>
+                        
+                        {/* 业绩报酬拆解 */}
+                        {result.performanceFee.breakdown.length > 0 && (
+                            <div className="breakdown-section">
+                                <div className="breakdown-title">业绩报酬拆解</div>
+                                {result.performanceFee.breakdown.map((item, index) => (
+                                    <div key={index} className="breakdown-item">
+                                        <div className="breakdown-item-header">
+                                            <span><span className="tier-badge">{item.tier}</span> {item.description}</span>
+                                            <span>{formatCurrency(item.managerAmount)} 港元</span>
+                                        </div>
+                                        <div className="breakdown-item-detail">
+                                            收益：{formatCurrency(item.profit)} | 管理人{item.managerShare}%
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {/* 投资者税收拆解 */}
+                        {result.investorTax.breakdown.length > 0 && (
+                            <div className="breakdown-section">
+                                <div className="breakdown-title">投资者利得税拆解</div>
+                                {result.investorTax.breakdown.map((item, index) => (
+                                    <div key={index} className="breakdown-item">
+                                        <div className="breakdown-item-header">
+                                            <span>{item.type} {item.rate > 0 && `(${item.rate}%)`}</span>
+                                            <span>{formatCurrency(item.tax)} 港元</span>
+                                        </div>
+                                        {item.note && (
+                                            <div className="breakdown-item-detail">{item.note}</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🏦 SKYW LS 专项基金投资回报测算</h1>
+                        <p>香港新能源数字资产上市公司成长基金 - 龙腾计划专项投资收益计算器</p>
+                    </div>
+
+                    <div className="content">
+                        {/* 输入区域 */}
+                        <div className="input-section">
+                            <h2 className="section-title">📝 投资参数</h2>
+                            
+                            <div className="input-grid">
+                                <div className="form-group">
+                                    <label>投资金额</label>
+                                    <div className="input-suffix" data-suffix="港元">
+                                        <input
+                                            type="number"
+                                            value={inputs.investment}
+                                            onChange={(e) => handleInputChange('investment', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>投资期限</label>
+                                    <div className="input-suffix" data-suffix="年">
+                                        <input
+                                            type="number"
+                                            value={inputs.investmentYears}
+                                            onChange={(e) => handleInputChange('investmentYears', e.target.value)}
+                                            step="0.5"
+                                            min="0.5"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>基金总规模</label>
+                                    <div className="input-suffix" data-suffix="港元">
+                                        <input
+                                            type="number"
+                                            value={inputs.fundSize}
+                                            onChange={(e) => handleInputChange('fundSize', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>投资者类型</label>
+                                    <select 
+                                        value={inputs.investorType}
+                                        onChange={(e) => handleInputChange('investorType', e.target.value)}
+                                    >
+                                        <option value="individual">个人投资者</option>
+                                        <option value="company">公司投资者</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <h2 className="section-title" style={{marginTop: '30px'}}>📈 股票市值变化</h2>
+                            
+                            <div className="input-grid">
+                                <div className="form-group">
+                                    <label>投资时股票市值</label>
+                                    <div className="input-suffix" data-suffix="港元">
+                                        <input
+                                            type="number"
+                                            value={inputs.initialMarketCap}
+                                            onChange={(e) => handleInputChange('initialMarketCap', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>退出时股票市值</label>
+                                    <div className="input-suffix" data-suffix="港元">
+                                        <input
+                                            type="number"
+                                            value={inputs.finalMarketCap}
+                                            onChange={(e) => handleInputChange('finalMarketCap', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>大宗转让折让</label>
+                                    <div className="input-suffix" data-suffix="%">
+                                        <input
+                                            type="number"
+                                            value={inputs.discount}
+                                            onChange={(e) => handleInputChange('discount', e.target.value)}
+                                            step="0.5"
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button className="calculate-btn" onClick={calculate}>
+                                🧮 计算收益
+                            </button>
+
+                            <div className="info-box">
+                                <div className="info-box-title">💡 计算说明</div>
+                                <div className="info-box-content">
+                                    <p>• 管理费：每年2%，投资时预扣（如投2年扣4%）</p>
+                                    <p>• 基金初始净值：1港元</p>
+                                    <p>• 基金层面：OFC享受利得税豁免，不征税</p>
+                                    <p>• 投资者层面：个人16.5% / 公司两级制</p>
+                                    <p>• 业绩报酬：累进分段计算</p>
+                                </div>
+                            </div>
+
+                            <div className="info-box" style={{marginTop: '15px', background: '#fef3c7', borderColor: '#f59e0b'}}>
+                                <div className="info-box-title" style={{color: '#92400e'}}>🎯 龙腾计划市值路线图</div>
+                                <div className="info-box-content" style={{color: '#92400e'}}>
+                                    <p><strong>启动阶段（0-2个月）：</strong></p>
+                                    <p>• 当前市值：4.69亿港元</p>
+                                    <p>• 完成融资：5000-8000万港元</p>
+                                    <p></p>
+                                    <p><strong>第一年目标（12个月）：</strong></p>
+                                    <p>• 市值突破：50亿港元（增长约10倍）</p>
+                                    <p>• 股票市值从2亿涨到50亿（25倍）</p>
+                                    <p>• 年收入：8-10亿港元</p>
+                                    <p>• EBITDA率：25%</p>
+                                    <p></p>
+                                    <p><strong>第二年目标（24个月）：</strong></p>
+                                    <p>• 市值稳定：70-120亿港元</p>
+                                    <p>• 年收入：15亿港元</p>
+                                    <p>• 纳入港股通，获得内地资金配置</p>
+                                </div>
+                            </div>
+
+                            <div className="info-box" style={{marginTop: '15px', background: '#dcfce7', borderColor: '#10b981'}}>
+                                <div className="info-box-title" style={{color: '#065f46'}}>📅 投资人满一年赎回参考</div>
+                                <div className="info-box-content" style={{color: '#065f46'}}>
+                                    <p><strong>基准情景：</strong>市值达50亿港元</p>
+                                    <p>• 股票从2亿涨到50亿（25倍）</p>
+                                    <p>• 基金净值从1涨到25</p>
+                                    <p>• 投100万 → 账户价值约2450万</p>
+                                    <p>• 扣费扣税后预计净收益：12-18倍</p>
+                                    <p></p>
+                                    <p><strong>乐观情景：</strong>市值达80亿港元</p>
+                                    <p>• 基金净值约40</p>
+                                    <p>• 投100万 → 预计净收益可达25-35倍</p>
+                                    <p></p>
+                                    <p><strong>建议赎回时点：</strong></p>
+                                    <p>• 满1年后（达到第一年目标50亿）</p>
+                                    <p>• 或满2年后（达到70-120亿目标）</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 结果区域 */}
+                        {results && (
+                            <>
+                                <div className="input-section">
+                                    <h2 className="section-title">📊 基金净值分析</h2>
+                                    <div className="result-row">
+                                        <span className="result-label">初始投资</span>
+                                        <span className="result-value">{formatCurrency(inputs.investment)} 港元</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">管理费（{inputs.investmentYears}年×2%）</span>
+                                        <span className="result-value negative">-{formatCurrency(results.managementFee)} 港元</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">实际投入基金</span>
+                                        <span className="result-value">{formatCurrency(results.netInvestment)} 港元</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">认购份额（初始净值=1）</span>
+                                        <span className="result-value">{formatCurrency(results.shares)} 份</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">股票增值倍数</span>
+                                        <span className="result-value positive">{results.stockMultiple.toFixed(2)}x</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">退出时基金净值</span>
+                                        <span className="result-value positive">{results.newNav.toFixed(4)} 港元/份</span>
+                                    </div>
+                                    <div className="result-row">
+                                        <span className="result-label">账户总价值</span>
+                                        <span className="result-value highlight">{formatCurrency(results.accountValue)} 港元</span>
+                                    </div>
+                                </div>
+
+                                <div className="comparison-section">
+                                    <h2 className="section-title">💰 收益对比分析</h2>
+                                    <div className="comparison-grid">
+                                        {renderResult(results.noDiscount, '情景A：无折让退出', null)}
+                                        {renderResult(results.withDiscount, '情景B：大宗转让', `${inputs.discount}%折让`)}
+                                    </div>
+                                </div>
+
+                                <div className="info-box">
+                                    <div className="info-box-title">⚠️ 重要提示</div>
+                                    <div className="info-box-content">
+                                        <p><strong>税收结构说明：</strong></p>
+                                        <p>• <strong>基金层面：</strong>OFC享受利得税豁免，不征税</p>
+                                        <p></p>
+                                        <p>• <strong>投资者层面：</strong></p>
+                                        <p>  - 个人投资者：对全部收益征收16.5%利得税</p>
+                                        <p>  - 公司投资者：首200万8.25%，超过部分16.5%</p>
+                                        <p></p>
+                                        <p>• 实际税负请咨询专业税务顾问</p>
+                                        <p>• 本计算器仅供参考，不构成投资建议</p>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<FundCalculator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
